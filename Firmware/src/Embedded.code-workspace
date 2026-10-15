@@ -1,0 +1,12 @@
+{
+	"folders": [
+		{
+			"path": "../../../../../Code/Embedded"
+		},
+		{
+			"name": "Remote_project",
+			"path": ".."
+		}
+	],
+	"settings": {}
+}

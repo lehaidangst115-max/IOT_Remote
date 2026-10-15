@@ -1,0 +1,140 @@
+Câu hỏi: Giao thức ESP-NOW được phát triển bởi công ty nào?
+A: Espressif Systems
+B: Arduino LLC
+C: Texas Instruments
+D: STMicroelectronics
+Đáp án đúng: A
+Giải thích: ESP-NOW là giao thức độc quyền do Espressif Systems phát triển dành cho các dòng chip ESP8266 và ESP32.
+Câu hỏi: Vi điều khiển ESP32 hỗ trợ các chuẩn kết nối không dây nào sau đây?
+A: Chỉ hỗ trợ Wi-Fi
+B: Chỉ hỗ trợ Bluetooth
+C: Cả Wi-Fi và Bluetooth (bao gồm BLE)
+D: Wi-Fi và Zigbee
+Đáp án đúng: C
+Giải thích: ESP32 tích hợp cả Wi-Fi 802.11 b/g/n và Bluetooth v4.2 BR/EDR cùng với Bluetooth Low Energy (BLE).
+Câu hỏi: Điện áp hoạt động tiêu chuẩn (VCC) của chip ESP32 là bao nhiêu?
+A: 1.8V
+B: 3.3V
+C: 5V
+D: 12V
+Đáp án đúng: B
+Giải thích: Các chân GPIO và điện áp cấp nguồn hoạt động cốt lõi của ESP32 là 3.3V. Cấp 5V trực tiếp vào chân GPIO có thể làm hỏng chip.
+Câu hỏi: Trong môi trường Arduino IDE, hàm nào bắt buộc phải có để khởi chạy mã nguồn một lần duy nhất khi cấp nguồn?
+A: void loop()
+B: void start()
+C: void setup()
+D: void main()
+Đáp án đúng: C
+Giải thích: Hàm setup() là hàm khởi tạo cấu hình phần cứng, chỉ chạy một lần duy nhất khi hệ thống khởi động hoặc reset.
+Câu hỏi: Để cấu hình một chân GPIO làm đầu ra trong Arduino, ta sử dụng hàm nào?
+A: digitalWrite()
+B: digitalRead()
+C: pinMode()
+D: analogWrite()
+Đáp án đúng: C
+Giải thích: Hàm pinMode(pin, mode) dùng để đặt trạng thái cho chân là INPUT, OUTPUT hoặc INPUT_PULLUP.
+Câu hỏi: Chân GPIO nào sau đây trên ESP32 chỉ có chức năng nhận tín hiệu đầu vào (Input-only)?
+A: GPIO 2
+B: GPIO 4
+C: GPIO 21
+D: GPIO 34
+Đáp án đúng: D
+Giải thích: Các chân GPIO từ 34 đến 39 trên chip ESP32 chỉ là đầu vào kỹ thuật số (Input-only) và không có điện trở kéo lên/kéo xuống nội bộ.
+Câu hỏi: Độ phân giải mặc định của bộ chuyển đổi ADC (Analog to Digital Converter) trên ESP32 là bao nhiêu bit?
+A: 8 bit
+B: 10 bit
+C: 12 bit
+D: 16 bit
+Đáp án đúng: C
+Giải thích: ESP32 tích hợp bộ chuyển đổi ADC có độ phân giải lên đến 12-bit, cho giá trị đọc từ 0 đến 4095.
+Câu hỏi: Bộ nhớ Flash tích hợp phổ biến trên các module ESP32-WROOM-32 thông thường có dung lượng là bao nhiêu?
+A: 512 KB
+B: 1 MB
+C: 4 MB
+D: 16 MB
+Đáp án đúng: C
+Giải thích: Phiên bản ESP32 tiêu chuẩn trên thị trường hiện nay thường đi kèm với bộ nhớ Flash ngoài dung lượng 4 Megabytes (32 Megabits).
+Câu hỏi: Hệ điều hành thời gian thực nào được tích hợp sẵn trong bộ phát triển ESP-IDF để quản lý đa nhiệm trên ESP32?
+A: Linux
+B: FreeRTOS
+C: Windows IoT
+D: Zephyr RTOS
+Đáp án đúng: B
+Giải thích: Espressif tích hợp hệ điều hành mã nguồn mở FreeRTOS vào bộ công cụ giúp nhà phát triển tận dụng tối đa cấu trúc chip lõi kép (Dual-core).
+Câu hỏi: Để giao tiếp giữa hai thiết bị qua ESP-NOW mà không cần mã hóa, số lượng thiết bị kết nối tối đa (Peers) là bao nhiêu?
+A: 20 thiết bị
+B: 50 thiết bị
+C: 100 thiết bị
+D: Không giới hạn
+Đáp án đúng: D
+Giải thích: Giao thức ESP-NOW giới hạn tối đa 20 thiết bị được mã hóa (encrypted peers), nhưng không giới hạn số lượng thiết bị kết nối không mã hóa.
+Câu hỏi: Trong giao tiếp UART, chân TX của vi điều khiển này phải được nối với chân nào của vi điều khiển khác?
+A: TX
+B: RX
+C: GND
+D: VCC
+Đáp án đúng: B
+Giải thích: Chân truyền tín hiệu TX (Transmit) của thiết bị này phải được nối nối chéo sang chân nhận tín hiệu RX (Receive) của thiết bị kia.
+Câu hỏi: Chuẩn giao tiếp I2C sử dụng bao nhiêu đường tín hiệu chính (không tính dây nguồn và dây đất)?
+A: 1 đường
+B: 2 đường
+C: 3 đường
+D: 4 đường
+Đáp án đúng: B
+Giải thích: I2C (Inter-Integrated Circuit) là chuẩn giao tiếp đồng bộ sử dụng 2 đường truyền: SDA (Dữ liệu) và SCL (Xung nhịp).
+Câu hỏi: Chuẩn giao tiếp SPI sử dụng chân tín hiệu nào để chọn thiết bị ngoại vi cụ thể (Slave)?
+A: MOSI
+B: MISO
+C: SCK
+D: SS / CS
+Đáp án đúng: D
+Giải thích: Chân SS (Slave Select) hoặc CS (Chip Select) được kéo xuống mức thấp (Low) để kích hoạt thiết bị tớ nhận/gửi dữ liệu.
+Câu hỏi: Khi sử dụng chế độ tiết kiệm năng lượng "Deep Sleep" trên ESP32, linh kiện nào sau đây vẫn tiếp tục hoạt động?
+A: CPU chính
+B: Bộ phát Wi-Fi
+C: Bộ đồng hồ thời gian thực RTC và bộ nhớ RTC
+D: Bộ xử lý Bluetooth
+Đáp án đúng: C
+Giải thích: Ở chế độ Deep Sleep, toàn bộ CPU và sóng Wi-Fi/Bluetooth bị tắt để tiết kiệm điện, chỉ còn bộ điều khiển RTC hoạt động để đếm thời gian thức dậy.
+Câu hỏi: Hàm nào trong Arduino được dùng để tạo một khoảng thời gian dừng chương trình tính bằng mili-giây?
+A: sleep()
+B: delayMicros()
+C: wait()
+D: delay()
+Đáp án đúng: D
+Giải thích: Hàm delay(ms) nhận tham số đầu vào là thời gian chờ tính bằng mili-giây (1 giây = 1000 ms).
+Câu hỏi: Hệ thống file nào thường được dùng để lưu trữ dữ liệu tĩnh (như cấu hình web, ảnh) trực tiếp lên bộ nhớ Flash của ESP32?
+A: FAT32
+B: NTFS
+C: LittleFS hoặc SPIFFS
+D: Ext4
+Đáp án đúng: C
+Giải thích: LittleFS và SPIFFS là các hệ thống tệp gọn nhẹ được thiết kế chuyên biệt cho bộ nhớ Flash trên vi điều khiển.
+Câu hỏi: Để đọc địa chỉ MAC (Media Access Control) của chip ESP32 nhằm thiết lập cấu hình định tuyến tĩnh, ta dùng thư viện nào?
+A: WiFi.h
+B: SPI.h
+C: Wire.h
+D: EEPROM.h
+Đáp án đúng: A
+Giải thích: Lệnh WiFi.macAddress() trong thư viện WiFi.h hỗ trợ lấy chuỗi mã vật lý MAC của phần cứng Wi-Fi.
+Câu hỏi: Giao thức mạng IoT nhẹ, hoạt động theo mô hình Xuất bản/Đăng ký (Publish/Subscribe) chạy phổ biến trên ESP32 là gì?
+A: HTTP
+B: MQTT
+C: FTP
+D: SMTP
+Đáp án đúng: B
+Giải thích: MQTT (Message Queuing Telemetry Transport) là giao thức gửi nhận bản tin cực nhẹ, tiêu tốn ít băng thông và năng lượng, tối ưu cho ứng dụng IoT.
+Câu hỏi: Thuật ngữ "PWM" viết tắt của cụm từ nào, được dùng để điều khiển độ sáng LED hoặc tốc độ động cơ?
+A: Pulse Width Modulation
+B: Phase Wave Modulation
+C: Power Width Management
+D: Program Word Mode
+Đáp án đúng: A
+Giải thích: PWM (Điều chế độ rộng xung) là phương pháp thay đổi thời gian cấp điện (Duty Cycle) trong một chu kỳ sóng để giả lập điện áp ra analog.
+Câu hỏi: Khi cấu hình ESP-NOW, trạng thái Wi-Fi (Wi-Fi Mode) của chip cần được thiết lập như thế nào trước khi khởi tạo?
+A: WIFI_OFF
+B: WIFI_MODE_AP hoặc WIFI_MODE_STA
+C: Chỉ hoạt động được ở chế độ AP
+D: Chỉ hoạt động được ở chế độ SmartConfig
+Đáp án đúng: B
+Giải thích: Để lớp giao thức ESP-NOW hoạt động, chip vi điều khiển bắt buộc phải kích hoạt phần cứng Wi-Fi dưới dạng Station (STA) hoặc Access Point (AP).
