@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quyền riêng tư - HCMUTE ARS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome/all.min.css') }}">
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-800">
+  <main class="mx-auto max-w-3xl space-y-6 p-4 py-10 md:p-8">
+    <a href="/" class="inline-flex items-center gap-2 text-sm font-semibold text-blue-700 hover:text-blue-900"><i class="fa-solid fa-arrow-left"></i> Quay lại HCMUTE ARS</a>
+    <article class="space-y-5 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+      <header>
+        <p class="text-xs font-bold uppercase tracking-widest text-blue-600">HCMUTE ARS</p>
+        <h1 class="mt-1 text-2xl font-extrabold text-slate-900">Thông báo quyền riêng tư</h1>
+        <p class="mt-2 text-sm text-slate-500">Bản thông báo sản phẩm; đơn vị vận hành cần rà soát và bổ sung thông tin liên hệ trước khi triển khai công khai.</p>
+      </header>
+      <section class="space-y-2">
+        <h2 class="font-bold text-slate-900">Dữ liệu được xử lý</h2>
+        <p class="text-sm leading-6 text-slate-600">Hệ thống có thể lưu thông tin tài khoản giảng viên, danh sách lớp (STT, họ tên, MSSV, ghi chú), trạng thái tham gia, câu trả lời, điểm và bài làm kiểm tra. Thông tin kết nối kỹ thuật cũng có thể được xử lý để duy trì phiên đăng nhập, bảo vệ dịch vụ và chẩn đoán lỗi.</p>
+      </section>
+      <section class="space-y-2">
+        <h2 class="font-bold text-slate-900">Mục đích và quyền truy cập</h2>
+        <p class="text-sm leading-6 text-slate-600">Dữ liệu được dùng để tổ chức hoạt động lớp học, phát câu hỏi, tổ chức kiểm tra, chấm bài, hiển thị phân tích và xuất báo cáo. Giảng viên được phân quyền quản lý phòng của mình; mã bài kiểm tra và token phiên là thông tin cần được giữ bí mật.</p>
+      </section>
+      <section class="space-y-2">
+        <h2 class="font-bold text-slate-900">Lưu trữ và xóa</h2>
+        <p class="text-sm leading-6 text-slate-600">Theo cấu hình hiện tại, hệ thống không tự xóa dữ liệu sau một khoảng thời gian. Giảng viên hoặc quản trị viên chủ động xóa phòng, sinh viên hoặc bài kiểm tra khi không còn cần thiết. Bản sao lưu có thể còn chứa dữ liệu đã xóa cho đến khi bản sao lưu đó được xóa theo quy trình vận hành.</p>
+      </section>
+      <section class="space-y-2">
+        <h2 class="font-bold text-slate-900">Nhà cung cấp và chuyển dữ liệu</h2>
+        <p class="text-sm leading-6 text-slate-600">Đơn vị triển khai có thể cấu hình dịch vụ email/SMS để gửi mã khôi phục và MQTT để nhận thiết bị phản hồi. Hạ tầng lưu trữ, vị trí xử lý dữ liệu và các nhà cung cấp thực tế phụ thuộc vào cấu hình của đơn vị vận hành; cần công bố chúng trước khi thu thập dữ liệu thật.</p>
+      </section>
+      <section class="space-y-2">
+        <h2 class="font-bold text-slate-900">Bảo mật và liên hệ</h2>
+        <p class="text-sm leading-6 text-slate-600">Đơn vị vận hành chịu trách nhiệm cấu hình HTTPS, bảo vệ bí mật, giới hạn quyền truy cập, sao lưu và xử lý yêu cầu liên quan dữ liệu. Sinh viên cần liên hệ giảng viên hoặc đơn vị vận hành của lớp để yêu cầu sửa/xóa dữ liệu hoặc báo sự cố; cần bổ sung đầu mối liên hệ chính thức của đơn vị trước khi đưa dịch vụ ra công chúng.</p>
+      </section>
+      <p class="border-t border-slate-200 pt-4 text-xs leading-5 text-slate-500">Thông báo này là nội dung vận hành mẫu, không phải tư vấn pháp lý. Đơn vị phát hành cần rà soát với quy định áp dụng và mô hình triển khai thực tế trước khi cung cấp dịch vụ thương mại.</p>
+    </article>
+  </main>
+</body>
+</html>

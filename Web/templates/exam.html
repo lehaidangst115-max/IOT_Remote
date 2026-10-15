@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Làm bài kiểm tra - HCMUTE ARS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome/all.min.css') }}">
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
+    .fade-in { animation: fade .25s ease-out; }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen">
+
+  <!-- Thanh trên cùng -->
+  <header class="bg-slate-900 text-white sticky top-0 z-40 shadow">
+    <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 min-w-0">
+        <div class="w-9 h-9 shrink-0 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center"><i class="fa-solid fa-pen-to-square"></i></div>
+        <div class="min-w-0"><p id="hdr-title" class="font-bold text-sm truncate">HCMUTE ARS · Kiểm tra</p><p id="hdr-student" class="text-xs text-slate-400 truncate"></p></div>
+      </div>
+      <div id="hdr-timer" class="hidden items-center gap-2 rounded-xl bg-slate-800 px-3 py-1.5">
+        <i class="fa-solid fa-stopwatch text-amber-400"></i>
+        <span id="timer-text" class="font-mono font-extrabold text-lg tabular-nums">--:--</span>
+      </div>
+    </div>
+    <div id="hdr-progress" class="hidden h-1 bg-slate-700"><div id="hdr-progress-bar" class="h-1 bg-emerald-400 transition-all" style="width:0%"></div></div>
+  </header>
+
+  <main class="max-w-3xl mx-auto p-4 md:p-6">
+
+    <!-- 1. Nhập mã bài + MSSV -->
+    <section id="view-entry" class="fade-in max-w-md mx-auto mt-6">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-xl overflow-hidden">
+        <div class="bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-800 p-6 text-white">
+          <h1 class="text-2xl font-extrabold">Làm bài kiểm tra</h1>
+          <p class="text-sm text-blue-100 mt-1">Nhập mã bài do giảng viên cung cấp và mã số sinh viên của bạn.</p>
+        </div>
+        <form id="entry-form" class="p-6 space-y-4" novalidate>
+          <label class="block"><span class="block text-xs font-bold text-slate-700 uppercase mb-1">Mã bài kiểm tra</span>
+            <input id="in-code" type="text" maxlength="12" autocomplete="off" autocapitalize="characters" value="{{ prefill_code }}" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-mono font-bold tracking-widest text-lg uppercase" placeholder="VD: K7M2QX"></label>
+          <label class="block"><span class="block text-xs font-bold text-slate-700 uppercase mb-1">MSSV</span>
+            <input id="in-sid" type="text" maxlength="32" autocomplete="off" inputmode="text" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none font-mono text-lg" placeholder="VD: 21146001"></label>
+          <button id="btn-lookup" type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-bold rounded-xl shadow-md transition">Tiếp tục</button>
+          <p id="entry-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700" role="alert"></p>
+        </form>
+      </div>
+    </section>
+
+    <!-- 2. Xác nhận trước khi tính giờ -->
+    <section id="view-confirm" class="hidden fade-in max-w-md mx-auto mt-6">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 space-y-4">
+        <div>
+          <p class="text-xs font-bold uppercase tracking-widest text-blue-600">Xác nhận thông tin</p>
+          <h2 id="cf-title" class="text-xl font-extrabold text-slate-900 mt-1"></h2>
+        </div>
+        <div class="rounded-2xl bg-slate-50 border border-slate-200 p-4 space-y-1 text-sm">
+          <p><span class="text-slate-500">Sinh viên:</span> <b id="cf-name"></b></p>
+          <p><span class="text-slate-500">MSSV:</span> <b id="cf-sid" class="font-mono"></b></p>
+          <p id="cf-date-row" class="hidden"><span class="text-slate-500">Ngày kiểm tra:</span> <b id="cf-date"></b></p>
+          <p><span class="text-slate-500">Số câu:</span> <b id="cf-count"></b> &nbsp;·&nbsp; <span class="text-slate-500">Thời gian:</span> <b id="cf-duration"></b> phút</p>
+        </div>
+        <p id="cf-note" class="text-xs text-slate-500">Đồng hồ bắt đầu chạy ngay khi bạn bấm “Bắt đầu làm bài” và <b>không dừng lại</b> kể cả khi bạn đóng trang. Hết giờ, bài sẽ tự động được nộp.</p>
+        <p id="cf-message" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-200 text-sm text-amber-900"></p>
+        <div class="flex gap-2">
+          <button id="btn-back" type="button" class="w-1/3 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl">Quay lại</button>
+          <button id="btn-start" type="button" class="w-2/3 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold rounded-xl shadow-md transition"><i class="fa-solid fa-play mr-2"></i><span id="btn-start-label">Bắt đầu làm bài</span></button>
+        </div>
+        <p id="cf-error" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-sm text-red-700" role="alert"></p>
+      </div>
+    </section>
+
+    <!-- 3. Làm bài -->
+    <section id="view-exam" class="hidden fade-in">
+      <div id="net-banner" class="hidden mb-3 p-3 rounded-xl bg-amber-50 border border-amber-300 text-sm text-amber-900"><i class="fa-solid fa-wifi mr-1"></i><span id="net-banner-text">Chưa lưu được đáp án, đang thử lại...</span></div>
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-lg p-5 md:p-7">
+        <div class="flex items-center justify-between mb-4">
+          <span class="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-bold text-xs">Câu <span id="q-index">1</span> / <span id="q-total">1</span></span>
+          <span id="q-saved" class="text-xs text-emerald-600 opacity-0 transition-opacity"><i class="fa-solid fa-check mr-1"></i>Đã lưu</span>
+        </div>
+        <h2 id="q-text" class="text-lg md:text-xl font-bold text-slate-900 leading-relaxed whitespace-pre-wrap"></h2>
+        <div id="q-options" class="mt-5 space-y-3"></div>
+        <button id="btn-clear" type="button" class="mt-3 text-xs font-semibold text-slate-500 hover:text-red-600 hidden"><i class="fa-solid fa-eraser mr-1"></i>Bỏ chọn câu này</button>
+      </div>
+
+      <div class="mt-4 flex items-center justify-between gap-3">
+        <button id="btn-prev" type="button" class="px-4 py-3 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 font-bold text-sm disabled:opacity-40"><i class="fa-solid fa-arrow-left mr-1"></i>Câu trước</button>
+        <button id="btn-next" type="button" class="px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm disabled:opacity-40">Câu sau<i class="fa-solid fa-arrow-right ml-1"></i></button>
+      </div>
+
+      <div class="mt-5 bg-white rounded-2xl border border-slate-200 p-4">
+        <div class="flex items-center justify-between mb-3"><p class="text-xs font-bold text-slate-600 uppercase tracking-wider">Danh sách câu</p><p class="text-xs text-slate-500">Đã làm <b id="answered-count">0</b>/<span id="answered-total">0</span></p></div>
+        <div id="q-grid" class="grid grid-cols-8 sm:grid-cols-10 gap-2"></div>
+        <button id="btn-submit" type="button" class="mt-4 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold rounded-xl shadow-md transition"><i class="fa-solid fa-paper-plane mr-2"></i>Nộp bài</button>
+      </div>
+    </section>
+
+    <!-- 4. Kết quả -->
+    <section id="view-result" class="hidden fade-in max-w-2xl mx-auto mt-4">
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 md:p-8 text-center">
+        <div id="rs-icon" class="w-16 h-16 mx-auto rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-3xl"><i class="fa-solid fa-circle-check"></i></div>
+        <h2 class="text-2xl font-extrabold text-slate-900 mt-4">Đã nộp bài</h2>
+        <p id="rs-reason" class="text-sm text-slate-500 mt-1"></p>
+        <div class="mt-6 grid grid-cols-2 gap-3">
+          <div class="rounded-2xl bg-blue-50 border border-blue-100 p-4"><p class="text-xs font-bold uppercase text-blue-600">Điểm (thang 10)</p><p id="rs-score" class="text-4xl font-extrabold text-blue-700 mt-1">0</p></div>
+          <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-4"><p class="text-xs font-bold uppercase text-emerald-600">Số câu đúng</p><p id="rs-correct" class="text-4xl font-extrabold text-emerald-700 mt-1">0/0</p></div>
+        </div>
+        <p id="rs-time" class="text-xs text-slate-500 mt-4"></p>
+        <button id="btn-done" type="button" class="mt-6 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-sm">Thoát</button>
+      </div>
+      <div id="rs-review" class="mt-5 space-y-3"></div>
+    </section>
+  </main>
+  <footer class="mx-auto max-w-3xl px-4 pb-6 text-center text-xs text-slate-500">
+    <a href="/privacy" class="hover:text-blue-700">Quyền riêng tư</a>
+  </footer>
+
+  <script>
+    const LETTERS = ['A', 'B', 'C', 'D'];
+    const LETTER_COLORS = { A: 'bg-red-500', B: 'bg-blue-500', C: 'bg-amber-500', D: 'bg-emerald-500' };
+    const $ = id => document.getElementById(id);
+    // Luôn bắt đầu ở màn hình nhập MSSV: không bao giờ tự vào phiên của người dùng trước.
+    // Mỗi (mã bài + MSSV) có một token riêng trên máy này, chỉ dùng để chứng minh "đúng máy đang làm bài đó"
+    // khi chính sinh viên ấy nhập lại MSSV (ví dụ lỡ tải lại trang). MSSV khác trên cùng máy không dùng được.
+    const TOKENS_KEY = 'ars-exam-tokens';
+    localStorage.removeItem('ars-exam-token');
+    localStorage.removeItem('ars-exam-lookup');
+    const tokenKey = (code, sid) => `${String(code).trim().toUpperCase()}|${String(sid).trim().toUpperCase()}`;
+    function readTokens() {
+      try { return JSON.parse(localStorage.getItem(TOKENS_KEY) || '{}') || {}; } catch { return {}; }
+    }
+    function getResumeToken(code, sid) { return readTokens()[tokenKey(code, sid)] || ''; }
+    function saveResumeToken(code, sid, token) {
+      const all = readTokens();
+      all[tokenKey(code, sid)] = token;
+      localStorage.setItem(TOKENS_KEY, JSON.stringify(all));
+    }
+    function forgetResumeToken() {
+      if (!S.tokenKey) return;
+      const all = readTokens();
+      delete all[S.tokenKey];
+      localStorage.setItem(TOKENS_KEY, JSON.stringify(all));
+      S.tokenKey = null;
+    }
+
+    // Chờ giảng viên: hỏi máy chủ định kỳ, không cần tải lại trang.
+    function startWaiting() { if (!S.waitHandle) S.waitHandle = setInterval(pollWaiting, 3000); }
+    function stopWaiting() { clearInterval(S.waitHandle); S.waitHandle = null; }
+
+    const S = {
+      token: null, questions: [], answers: {}, current: 0,
+      endAt: 0, timerHandle: null, syncHandle: null,
+      pending: {}, flushing: false, finished: false, lookup: null,
+      waitHandle: null, armed: false, starting: false, tokenKey: null
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    }
+
+    function show(view) {
+      ['entry', 'confirm', 'exam', 'result'].forEach(name => $(`view-${name}`).classList.toggle('hidden', name !== view));
+      const inExam = view === 'exam';
+      $('hdr-timer').classList.toggle('hidden', !inExam);
+      $('hdr-timer').classList.toggle('flex', inExam);
+      $('hdr-progress').classList.toggle('hidden', !inExam);
+      window.scrollTo({ top: 0 });
+    }
+
+    function showError(id, message) {
+      const box = $(id);
+      box.textContent = message;
+      box.classList.toggle('hidden', !message);
+    }
+
+    async function api(path, { method = 'GET', body, auth = false } = {}) {
+      const headers = {};
+      if (body !== undefined) headers['Content-Type'] = 'application/json';
+      if (auth && S.token) headers['X-Attempt-Token'] = S.token;
+      const response = await fetch(path, { method, headers, body: body !== undefined ? JSON.stringify(body) : undefined, cache: 'no-store' });
+      let data = null;
+      try { data = await response.json(); } catch { /* không phải JSON */ }
+      return { ok: response.ok, status: response.status, data: data || {} };
+    }
+
+    // ---------- Bước 1 + 2: tra cứu và xác nhận ----------
+    $('entry-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const code = $('in-code').value.trim().toUpperCase();
+      const sid = $('in-sid').value.trim();
+      showError('entry-error', '');
+      if (!code || !sid) { showError('entry-error', 'Vui lòng nhập mã bài kiểm tra và MSSV.'); return; }
+      $('btn-lookup').disabled = true;
+      try {
+        const res = await api('/api/exam/lookup', { method: 'POST', body: { access_code: code, student_id: sid, resume_token: getResumeToken(code, sid) } });
+        if (!res.ok) { showError('entry-error', res.data.message || 'Không tra cứu được.'); return; }
+        S.lookup = { code, sid, ...res.data };
+        renderConfirm();
+      } catch {
+        showError('entry-error', 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.');
+      } finally {
+        $('btn-lookup').disabled = false;
+      }
+    });
+
+    // '2026-10-05T07:30' -> '05/10/2026 07:30'
+    function formatExamDate(value) {
+      const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})$/.exec(value || '');
+      return match ? `${match[3]}/${match[2]}/${match[1]} ${match[4]}:${match[5]}` : '';
+    }
+
+    function renderConfirm() {
+      const info = S.lookup;
+      $('cf-title').textContent = info.exam.title;
+      $('cf-name').textContent = info.student.name;
+      $('cf-sid').textContent = info.student.student_id;
+      $('cf-count').textContent = info.exam.question_count;
+      $('cf-duration').textContent = info.exam.duration_minutes;
+      const examDate = formatExamDate(info.exam.scheduled_at);
+      $('cf-date').textContent = examDate;
+      $('cf-date-row').classList.toggle('hidden', !examDate);
+      showError('cf-error', '');
+      const startBtn = $('btn-start');
+      const message = $('cf-message');
+      message.classList.add('hidden');
+      let canAct = info.can_start;
+      $('btn-start-label').textContent = 'Bắt đầu làm bài';
+      $('cf-note').classList.remove('hidden');
+
+      if (info.attempt_state === 'in_progress') {
+        if (info.can_resume) {
+          $('btn-start-label').textContent = 'Tiếp tục làm bài';
+          canAct = true;
+        } else {
+          message.textContent = 'Bài làm của bạn đã được bắt đầu ở một thiết bị/trình duyệt khác. Nếu bị mất kết nối, hãy báo giảng viên chọn “Cho vào lại”, sau đó quay lại đây.';
+          message.classList.remove('hidden');
+          canAct = false;
+        }
+        $('cf-note').classList.add('hidden');
+      } else if (info.attempt_state === 'submitted') {
+        message.textContent = 'Bạn đã nộp bài kiểm tra này rồi.';
+        message.classList.remove('hidden');
+        canAct = false;
+        $('cf-note').classList.add('hidden');
+      } else if (info.message) {
+        message.textContent = info.message;
+        message.classList.remove('hidden');
+      }
+      const draftWaiting = info.attempt_state === 'new' && info.exam.status === 'draft';
+      if (draftWaiting) {
+        message.textContent = 'Bài kiểm tra chưa được mở. Nút “Bắt đầu làm bài” sẽ tự sáng lên khi giảng viên mở bài, bạn không cần tải lại trang.';
+        message.classList.remove('hidden');
+        $('btn-start-label').textContent = 'Bắt đầu làm bài';
+      }
+      S.armed = draftWaiting;
+      startBtn.disabled = !canAct;
+      show('confirm');
+      if (draftWaiting || (info.attempt_state === 'in_progress' && !info.can_resume)) startWaiting(); else stopWaiting();
+    }
+
+    $('btn-back').addEventListener('click', () => {
+      stopWaiting();
+      S.lookup = null;
+      $('in-sid').value = '';
+      showError('entry-error', '');
+      show('entry');
+    });
+
+    async function pollWaiting() {
+      const info = S.lookup;
+      if (!info || S.starting) return;
+      try {
+        const res = await api('/api/exam/lookup', { method: 'POST', body: { access_code: info.code, student_id: info.sid, resume_token: getResumeToken(info.code, info.sid) } });
+        if (res.status === 404) {
+          stopWaiting(); S.lookup = null;
+          showError('entry-error', res.data.message || 'Bài kiểm tra không còn tồn tại.');
+          show('entry');
+          return;
+        }
+        if (!res.ok) return;
+        const wasArmed = S.armed;
+        S.lookup = { code: info.code, sid: info.sid, ...res.data };
+        renderConfirm();
+        // Giảng viên vừa mở bài: nút Bắt đầu đã sáng, chỉ nhắc để sinh viên tự bấm khi sẵn sàng.
+        if (wasArmed && res.data.can_start) {
+          const message = $('cf-message');
+          message.textContent = 'Giảng viên đã mở bài. Bấm “Bắt đầu làm bài” khi bạn sẵn sàng, đồng hồ sẽ chạy từ lúc bạn bấm.';
+          message.classList.remove('hidden');
+        }
+      } catch { /* mất mạng: thử lại ở lần sau */ }
+    }
+
+    async function doStart() {
+      const info = S.lookup;
+      if (!info || S.starting) return;
+      S.starting = true;
+      stopWaiting();
+      $('btn-start').disabled = true;
+      showError('cf-error', '');
+      try {
+        const res = await api('/api/exam/start', { method: 'POST', body: { access_code: info.code, student_id: info.sid, resume_token: getResumeToken(info.code, info.sid) } });
+        if (!res.ok) {
+          renderConfirm();
+          showError('cf-error', res.data.message || 'Không bắt đầu được bài.');
+          return;
+        }
+        beginFromPayload(res.data);
+      } catch {
+        renderConfirm();
+        showError('cf-error', 'Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.');
+      } finally {
+        S.starting = false;
+      }
+    }
+
+    $('btn-start').addEventListener('click', doStart);
+
+    // ---------- Làm bài ----------
+    function beginFromPayload(data) {
+      stopWaiting();
+      if (data.token) {
+        S.token = data.token;
+        S.tokenKey = tokenKey(S.lookup.code, S.lookup.sid);
+        saveResumeToken(S.lookup.code, S.lookup.sid, data.token);
+      }
+      $('hdr-title').textContent = data.exam.title;
+      $('hdr-student').textContent = `${data.student.name} · ${data.student.student_id}`;
+      if (data.submitted) { showResult(data); return; }
+      S.questions = data.questions;
+      S.answers = { ...data.answers };
+      S.pending = {};
+      S.finished = false;
+      S.current = firstUnanswered();
+      setRemaining(data.remaining_seconds);
+      startTimers();
+      $('q-total').textContent = S.questions.length;
+      $('answered-total').textContent = S.questions.length;
+      buildGrid();
+      renderQuestion();
+      show('exam');
+    }
+
+    function firstUnanswered() {
+      const index = S.questions.findIndex(q => !S.answers[String(q.qid)]);
+      return index === -1 ? 0 : index;
+    }
+
+    function setRemaining(seconds) { S.endAt = performance.now() + Math.max(0, seconds) * 1000; }
+
+    function startTimers() {
+      clearInterval(S.timerHandle); clearInterval(S.syncHandle);
+      S.timerHandle = setInterval(tick, 250);
+      S.syncHandle = setInterval(syncWithServer, 15000);
+      tick();
+    }
+
+    function tick() {
+      const left = Math.max(0, Math.ceil((S.endAt - performance.now()) / 1000));
+      const minutes = String(Math.floor(left / 60)).padStart(2, '0');
+      const seconds = String(left % 60).padStart(2, '0');
+      const timer = $('timer-text');
+      timer.textContent = `${minutes}:${seconds}`;
+      timer.className = 'font-mono font-extrabold text-lg tabular-nums ' + (left <= 60 ? 'text-red-400 animate-pulse' : left <= 300 ? 'text-amber-300' : 'text-white');
+      if (left <= 0 && !S.finished) { S.finished = true; finishByServer(); }
+    }
+
+    // Hết giờ: máy chủ tự nộp và chấm; giao diện chỉ việc hỏi lại kết quả.
+    async function finishByServer() {
+      clearInterval(S.timerHandle); clearInterval(S.syncHandle);
+      for (let attempt = 0; attempt < 10; attempt++) {
+        try {
+          const res = await api('/api/exam/attempt', { auth: true });
+          if (res.ok && res.data.submitted) { showResult(res.data); return; }
+          if (res.status === 401) { handleInvalidSession(); return; }
+          if (res.ok && !res.data.submitted) { setRemaining(res.data.remaining_seconds); S.finished = false; startTimers(); return; }
+        } catch { /* thử lại */ }
+        await new Promise(resolve => setTimeout(resolve, 1500));
+      }
+      showBanner('Không lấy được kết quả. Đừng đóng trang, kiểm tra mạng.');
+    }
+
+    async function syncWithServer() {
+      if (S.finished) return;
+      try {
+        const res = await api('/api/exam/attempt', { auth: true });
+        if (res.status === 401) { handleInvalidSession(); return; }
+        if (!res.ok) return;
+        if (res.data.submitted) { S.finished = true; showResult(res.data); return; }
+        setRemaining(res.data.remaining_seconds);
+        showBanner('');
+      } catch { /* mất mạng: giữ đồng hồ cục bộ */ }
+    }
+
+    function handleInvalidSession() {
+      S.finished = true;
+      clearInterval(S.timerHandle); clearInterval(S.syncHandle);
+      forgetResumeToken();
+      S.token = null;
+      $('hdr-student').textContent = '';
+      showError('entry-error', 'Phiên làm bài không còn hiệu lực (có thể bạn đã vào lại ở thiết bị khác hoặc giảng viên đã xóa bài). Hãy nhập lại mã bài và MSSV.');
+      show('entry');
+    }
+
+    function showBanner(text) {
+      $('net-banner').classList.toggle('hidden', !text);
+      if (text) $('net-banner-text').textContent = text;
+    }
+
+    function renderQuestion() {
+      const q = S.questions[S.current];
+      $('q-index').textContent = S.current + 1;
+      $('q-text').textContent = q.text;
+      const chosen = S.answers[String(q.qid)];
+      $('q-options').innerHTML = q.options.map(option => `
+        <button type="button" data-letter="${option.letter}" class="w-full text-left flex items-center gap-3 p-4 rounded-2xl border-2 transition ${chosen === option.letter ? 'border-blue-600 bg-blue-50' : 'border-slate-200 bg-white hover:border-blue-300'}">
+          <span class="w-9 h-9 shrink-0 rounded-xl ${LETTER_COLORS[option.letter]} text-white font-extrabold flex items-center justify-center">${option.letter}</span>
+          <span class="text-sm md:text-base font-medium text-slate-800 whitespace-pre-wrap">${escapeHtml(option.text)}</span>
+        </button>`).join('');
+      $('btn-clear').classList.toggle('hidden', !chosen);
+      $('btn-prev').disabled = S.current === 0;
+      $('btn-next').disabled = S.current === S.questions.length - 1;
+      updateGrid();
+    }
+
+    $('q-options').addEventListener('click', event => {
+      const button = event.target.closest('[data-letter]');
+      if (button) chooseAnswer(button.dataset.letter);
+    });
+    $('btn-clear').addEventListener('click', () => chooseAnswer(''));
+    $('btn-prev').addEventListener('click', () => { if (S.current > 0) { S.current--; renderQuestion(); } });
+    $('btn-next').addEventListener('click', () => { if (S.current < S.questions.length - 1) { S.current++; renderQuestion(); } });
+
+    function chooseAnswer(letter) {
+      if (S.finished) return;
+      const q = S.questions[S.current];
+      if (letter) S.answers[String(q.qid)] = letter; else delete S.answers[String(q.qid)];
+      S.pending[q.qid] = letter;
+      renderQuestion();
+      flushPending();
+    }
+
+    // Gửi đáp án lên máy chủ; nếu lỗi mạng thì giữ lại và thử lại.
+    async function flushPending() {
+      if (S.flushing) return;
+      S.flushing = true;
+      try {
+        while (Object.keys(S.pending).length && !S.finished) {
+          const [qid, letter] = Object.entries(S.pending)[0];
+          let res;
+          try {
+            res = await api('/api/exam/answer', { method: 'POST', body: { qid: Number(qid), letter }, auth: true });
+          } catch {
+            showBanner('Chưa lưu được đáp án, đang thử lại...');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            continue;
+          }
+          if (res.status === 401) { handleInvalidSession(); return; }
+          if (res.status === 409 && res.data.code === 'submitted') { S.pending = {}; S.finished = true; finishByServer(); return; }
+          if (!res.ok) { delete S.pending[qid]; showBanner(res.data.message || 'Không lưu được đáp án.'); continue; }
+          if (S.pending[qid] === letter) delete S.pending[qid];
+          setRemaining(res.data.remaining_seconds);
+          showBanner('');
+          flashSaved();
+        }
+      } finally {
+        S.flushing = false;
+      }
+    }
+
+    function flashSaved() {
+      const el = $('q-saved');
+      el.classList.remove('opacity-0');
+      clearTimeout(flashSaved.t);
+      flashSaved.t = setTimeout(() => el.classList.add('opacity-0'), 1200);
+    }
+
+    function buildGrid() {
+      $('q-grid').innerHTML = S.questions.map((q, index) =>
+        `<button type="button" data-index="${index}" class="h-9 rounded-lg text-xs font-bold border"></button>`).join('');
+    }
+
+    $('q-grid').addEventListener('click', event => {
+      const button = event.target.closest('[data-index]');
+      if (button) { S.current = Number(button.dataset.index); renderQuestion(); }
+    });
+
+    function updateGrid() {
+      let answered = 0;
+      [...$('q-grid').children].forEach((button, index) => {
+        const done = Boolean(S.answers[String(S.questions[index].qid)]);
+        if (done) answered++;
+        const isCurrent = index === S.current;
+        button.className = 'h-9 rounded-lg text-xs font-bold border ' + (isCurrent
+          ? 'border-blue-600 bg-blue-600 text-white'
+          : done ? 'border-emerald-300 bg-emerald-100 text-emerald-800' : 'border-slate-300 bg-white text-slate-600');
+        button.textContent = index + 1;
+      });
+      $('answered-count').textContent = answered;
+      $('hdr-progress-bar').style.width = `${S.questions.length ? (answered / S.questions.length) * 100 : 0}%`;
+    }
+
+    // ---------- Nộp bài ----------
+    $('btn-submit').addEventListener('click', async () => {
+      if (S.finished) return;
+      const unanswered = S.questions.filter(q => !S.answers[String(q.qid)]).length;
+      const message = unanswered
+        ? `Bạn còn ${unanswered} câu chưa trả lời. Vẫn nộp bài?`
+        : 'Nộp bài ngay bây giờ? Bạn sẽ không thể sửa đáp án sau khi nộp.';
+      if (!window.confirm(message)) return;
+      $('btn-submit').disabled = true;
+      try {
+        while (Object.keys(S.pending).length) {   // đảm bảo đáp án cuối cùng đã lên máy chủ
+          await flushPending();
+          if (S.finished) return;
+          if (Object.keys(S.pending).length) await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        const res = await api('/api/exam/submit', { method: 'POST', auth: true });
+        if (res.status === 401) { handleInvalidSession(); return; }
+        if (!res.ok) { showBanner(res.data.message || 'Không nộp được bài, hãy thử lại.'); return; }
+        S.finished = true;
+        showResult(res.data);
+      } catch {
+        showBanner('Không kết nối được máy chủ. Hãy thử nộp lại.');
+      } finally {
+        $('btn-submit').disabled = false;
+      }
+    });
+
+    // ---------- Kết quả ----------
+    function showResult(data) {
+      S.finished = true;
+      clearInterval(S.timerHandle); clearInterval(S.syncHandle);
+      forgetResumeToken();
+      const result = data.result;
+      $('hdr-title').textContent = data.exam.title;
+      $('hdr-student').textContent = `${data.student.name} · ${data.student.student_id}`;
+      $('rs-score').textContent = result.score10;
+      $('rs-correct').textContent = `${result.correct}/${result.total}`;
+      const reasons = { manual: 'Bạn đã tự nộp bài.', timeout: 'Hết giờ làm bài — hệ thống đã tự động nộp.', closed: 'Giảng viên đã kết thúc bài kiểm tra — bài được nộp tự động.' };
+      $('rs-reason').textContent = reasons[result.reason] || '';
+      const minutes = Math.floor(result.seconds_used / 60), seconds = result.seconds_used % 60;
+      $('rs-time').textContent = `Thời gian làm bài: ${minutes} phút ${seconds} giây`;
+      $('rs-icon').className = 'w-16 h-16 mx-auto rounded-2xl flex items-center justify-center text-3xl ' + (result.reason === 'manual' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600');
+      $('rs-icon').innerHTML = `<i class="fa-solid ${result.reason === 'manual' ? 'fa-circle-check' : 'fa-clock'}"></i>`;
+
+      $('rs-review').innerHTML = (data.review || []).map(q => `
+        <div class="bg-white rounded-2xl border ${q.is_correct ? 'border-emerald-200' : 'border-red-200'} p-4">
+          <p class="text-xs font-bold ${q.is_correct ? 'text-emerald-600' : 'text-red-600'}">Câu ${q.index} · ${q.is_correct ? 'Đúng' : (q.chosen ? 'Sai' : 'Chưa trả lời')}</p>
+          <p class="font-bold text-slate-900 mt-1 whitespace-pre-wrap">${escapeHtml(q.text)}</p>
+          <div class="mt-3 space-y-2">${q.options.map(o => {
+            const isCorrect = o.letter === q.correct_letter, isChosen = o.letter === q.chosen;
+            const cls = isCorrect ? 'border-emerald-400 bg-emerald-50' : isChosen ? 'border-red-300 bg-red-50' : 'border-slate-200';
+            return `<div class="flex items-center gap-2 rounded-xl border ${cls} px-3 py-2 text-sm"><b class="w-5">${o.letter}</b><span class="flex-1 whitespace-pre-wrap">${escapeHtml(o.text)}</span>${isCorrect ? '<i class="fa-solid fa-check text-emerald-600"></i>' : (isChosen ? '<i class="fa-solid fa-xmark text-red-600"></i>' : '')}</div>`;
+          }).join('')}</div>
+          ${q.explanation ? `<p class="mt-3 text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-xl p-3"><i class="fa-solid fa-lightbulb mr-1"></i>${escapeHtml(q.explanation)}</p>` : ''}
+        </div>`).join('');
+      show('result');
+    }
+
+    $('btn-done').addEventListener('click', () => {
+      S.token = null; S.lookup = null;
+      $('in-sid').value = '';
+      $('hdr-student').textContent = '';
+      show('entry');
+    });
+
+    // ---------- Mở link: luôn hiện màn hình nhập MSSV trước ----------
+    show('entry');
+    if ($('in-code').value) $('in-sid').focus();
+    // Quay lại trang bằng nút Back của trình duyệt (bfcache) cũng phải về màn hình nhập MSSV sạch.
+    window.addEventListener('pageshow', event => { if (event.persisted) window.location.reload(); });
+
+    window.addEventListener('beforeunload', event => {
+      if (S.token && !S.finished && $('view-exam') && !$('view-exam').classList.contains('hidden')) {
+        event.preventDefault(); event.returnValue = '';
+      }
+    });
+  </script>
+</body>
+</html>

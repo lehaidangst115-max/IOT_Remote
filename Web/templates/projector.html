@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trình chiếu câu hỏi ARS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/fontawesome/all.min.css') }}">
+  <style>
+    body { font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+    .option-card { animation: rise .45s both; }
+    .option-card:nth-child(2) { animation-delay: .08s; }
+    .option-card:nth-child(3) { animation-delay: .16s; }
+    .option-card:nth-child(4) { animation-delay: .24s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-950 text-white">
+  <main class="min-h-screen flex flex-col px-6 py-5 md:px-12 md:py-8">
+    <header class="flex items-center justify-between border-b border-white/10 pb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-xl"><i class="fa-solid fa-square-poll-vertical"></i></div>
+        <div><p class="text-sm md:text-base font-bold">HCMUTE Socrative ARS</p><p class="text-xs text-slate-400">Màn hình trình chiếu câu hỏi</p></div>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="rounded-full bg-slate-800 px-4 py-2 text-xs md:text-sm font-mono font-bold text-amber-300">PHÒNG <span id="room-code">{{ room_code }}</span></span>
+        <button onclick="toggleFullscreen()" class="w-10 h-10 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200" title="Toàn màn hình"><i class="fa-solid fa-expand"></i></button>
+      </div>
+    </header>
+
+    <section id="waiting-view" class="flex-1 flex flex-col items-center justify-center text-center py-12">
+      <div class="w-20 h-20 rounded-3xl bg-blue-500/10 text-blue-300 flex items-center justify-center text-3xl"><i class="fa-solid fa-hourglass-half"></i></div>
+      <h1 class="text-3xl md:text-5xl font-extrabold mt-7">Đang chờ giảng viên</h1>
+      <p class="text-slate-400 text-base md:text-xl mt-3">Câu hỏi sẽ xuất hiện tại đây khi được phát.</p>
+      <span class="mt-8 inline-flex items-center gap-2 text-sm text-emerald-300"><span class="w-2.5 h-2.5 bg-emerald-400 rounded-full animate-pulse"></span>Đang kết nối trực tiếp</span>
+    </section>
+
+    <section id="question-view" class="hidden flex-1 flex-col justify-center max-w-6xl w-full mx-auto py-8">
+      <div class="flex items-center gap-3 mb-7"><span class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center font-black text-xl">?</span><span class="text-sm md:text-base font-bold uppercase tracking-[.2em] text-blue-300">Câu hỏi đang được phát</span></div>
+      <h1 id="question-text" class="text-3xl md:text-5xl xl:text-6xl font-extrabold leading-tight"></h1>
+      <div id="options-grid" class="grid md:grid-cols-2 gap-4 md:gap-6 mt-10"></div>
+      <p class="text-center text-sm text-slate-500 mt-8">Chọn đáp án trên thiết bị của bạn</p>
+    </section>
+  </main>
+  <footer class="px-4 pb-3 text-center text-xs text-slate-500">
+    <a href="/privacy" class="hover:text-slate-300">Quyền riêng tư</a>
+  </footer>
+
+  <script>
+    const roomCode = {{ room_code|tojson }};
+    let lastQuestionId = null;
+    const waitingText = document.getElementById('waiting-view').querySelector('p');
+    const defaultWaitingText = waitingText.textContent;
+    const colors = { A: 'bg-rose-500', B: 'bg-blue-500', C: 'bg-amber-500', D: 'bg-emerald-500' };
+
+    async function refreshPresentation() {
+      try {
+        const response = await fetch(`/api/rooms/${encodeURIComponent(roomCode)}/presentation`, { cache: 'no-store' });
+        const result = await response.json();
+        if(!response.ok) throw new Error(result.message || 'Không thể tải phòng.');
+        waitingText.textContent = defaultWaitingText;
+        const question = result.published ? result.question : null;
+        document.getElementById('waiting-view').classList.toggle('hidden', Boolean(question));
+        document.getElementById('question-view').classList.toggle('hidden', !question);
+        if(!question) return;
+        if(question.id !== lastQuestionId) {
+          lastQuestionId = question.id;
+          document.getElementById('question-text').textContent = question.text;
+          document.getElementById('options-grid').innerHTML = Object.entries(question.options).map(([letter, text]) => `
+            <div class="option-card flex items-center gap-4 md:gap-6 rounded-3xl bg-white/5 border border-white/10 p-5 md:p-7">
+              <span class="${colors[letter]} w-12 h-12 md:w-16 md:h-16 rounded-2xl flex items-center justify-center text-2xl md:text-3xl font-black shadow-lg">${letter}</span>
+              <span class="text-xl md:text-3xl font-bold leading-snug"></span>
+            </div>`).join('');
+          [...document.querySelectorAll('#options-grid .option-card span:last-child')].forEach((node, index) => {
+            node.textContent = Object.values(question.options)[index];
+          });
+        }
+      } catch(error) {
+        waitingText.textContent = error.message;
+      }
+    }
+
+    function toggleFullscreen() {
+      if(!document.fullscreenElement) document.documentElement.requestFullscreen?.();
+      else document.exitFullscreen?.();
+    }
+
+    refreshPresentation();
+    setInterval(refreshPresentation, 1500);
+  </script>
+</body>
+</html>
